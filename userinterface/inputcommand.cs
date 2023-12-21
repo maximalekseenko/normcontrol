@@ -62,7 +62,16 @@ namespace NormControl.UserInterface
                         lastError = $"Команда \"check\" требует на вход аргументы <path> и <name>.";
                         break;
                     } 
-                    EditNorm.selectedNorm = new Norm(command[1]);
+                    CheckDocument.selectedPath = command[1];
+
+                    var norm = Reader.Read(command[2]);
+                    if (norm == null) {
+                        lastError = $"Норма с именем \"{command[2]}\" не найдена";
+                        break;
+                    }
+                    CheckDocument.selectedNorm = norm;
+
+                    CheckDocument.Run();
                 break;
 
                 case "new":
@@ -79,12 +88,12 @@ namespace NormControl.UserInterface
                         lastError = $"Команда \"edit\" на вход аргумент <name> argument";
                         break;
                     }
-                    var norm = Reader.Read(command[1]);
-                    if (norm == null) {
+                    var norm2 = Reader.Read(command[1]);
+                    if (norm2 == null) {
                         lastError = $"Норма с именем \"{command[1]}\" не найдена";
                         break;
                     }
-                    EditNorm.selectedNorm = norm;
+                    EditNorm.selectedNorm = norm2;
                     EditNorm.Run();
                 break;
 
