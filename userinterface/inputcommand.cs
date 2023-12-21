@@ -4,51 +4,100 @@ using NormControl.Norms;
 namespace NormControl.UserInterface
 {
     public class InputCommand { 
+        public static string lastError = "";
+
+
+        public static bool isRunning = false;
+        public static void Run() {
+            isRunning = true;
+
+            while (isRunning)
+            {
+                Render();
+            }
+        }
+
+
         public static void Render() {
             Renderer.Clear();
 
-            Renderer.WriteColorLine(new Tuple{"asd", ConsoleColor.DarkGray});
 
-
-            Console.ForegroundColor = ConsoleColor.DarkGray;
-            Console.WriteLine("Your existing norms:");
-            Console.ForegroundColor = ConsoleColor.Gray;
+            Renderer.WriteLine("Ваши нормы:", ConsoleColor.DarkGray);
 
             foreach(Norm norm in Reader.ReadAll()) 
                 Console.Write(norm.name + ' ');
 
+            Renderer.WriteLine("\nВведите команду:", ConsoleColor.DarkGray);
 
-            Console.ForegroundColor = ConsoleColor.DarkGray;
-            Console.WriteLine("\nInput your command:");
-            Console.ForegroundColor = ConsoleColor.Gray;
+            Renderer.Write("check ", ConsoleColor.Gray);
+            Renderer.Write("<path> <name> ", ConsoleColor.Yellow);
+            Renderer.Write("- проверяет документ по указанному пути <path> на соответствии норме с именем <name>\n", ConsoleColor.DarkGray);
 
-            Console.ForegroundColor = ConsoleColor.Gray;
-            Console.Write("check ");
-            Console.ForegroundColor = ConsoleColor.Yellow;
-            Console.Write("<path> <norm> ");
-            Console.ForegroundColor = ConsoleColor.DarkGray;
-            Console.Write("- проверяет документ по указанному пути <path> на соответствии норме с именем <norm>\n");
-            Console.ForegroundColor = ConsoleColor.Gray;
+            Renderer.Write("new ", ConsoleColor.Gray);
+            Renderer.Write("<name> ", ConsoleColor.Yellow);
+            Renderer.Write("- создает новую норму с именем <name> и отрывает её для редактирования\n", ConsoleColor.DarkGray);
 
-            Console.ForegroundColor = ConsoleColor.Gray;
-            Console.Write("new ");
-            Console.ForegroundColor = ConsoleColor.Yellow;
-            Console.Write("<norm> ");
-            Console.ForegroundColor = ConsoleColor.DarkGray;
-            Console.Write("- фывфывфывфыв\n");
-            Console.ForegroundColor = ConsoleColor.Gray;
+            Renderer.Write("edit ", ConsoleColor.Gray);
+            Renderer.Write("<name> ", ConsoleColor.Yellow);
+            Renderer.Write("- отрывает норму с именем <name> для редактирования\n", ConsoleColor.DarkGray);
 
-            Console.ForegroundColor = ConsoleColor.Gray;
-            Console.Write("edit ");
-            Console.ForegroundColor = ConsoleColor.Yellow;
-            Console.Write("<norm> ");
-            Console.ForegroundColor = ConsoleColor.DarkGray;
-            Console.Write("- фывфывфывфывфы\n");
-            Console.ForegroundColor = ConsoleColor.Gray;
+            Renderer.Write("exit ", ConsoleColor.Gray);
+            Renderer.Write("- выходит из программы\n", ConsoleColor.DarkGray);
 
 
+            Renderer.WriteLine(lastError, ConsoleColor.Red);
+
+            GetCommand();
+        }
+
+
+        private static void GetCommand() {
             Console.Write("\n> ");
-            Console.ReadLine();
+            var command = (Console.ReadLine() ?? "").Split();
+
+            switch (command[0])
+            {
+                case "check":
+                    if (command.Length < 3) {
+                        lastError = $"Команда \"check\" требует на вход аргументы <path> и <name>.";
+                        break;
+                    } 
+                    EditNorm.selectedNorm = new Norm(command[1]);
+                break;
+
+                case "new":
+                    if (command.Length < 2) {
+                        lastError = $"Команда \"new\" на вход аргумент <name>.";
+                        break;
+                    }
+                    EditNorm.selectedNorm = new Norm(command[1]);
+                    EditNorm.Run();
+                break;
+
+                case "edit":
+                    if (command.Length < 2) {
+                        lastError = $"Команда \"edit\" на вход аргумент <name> argument";
+                        break;
+                    }
+                    var norm = Reader.Read(command[1]);
+                    if (norm == null) {
+                        lastError = $"Норма с именем \"{command[1]}\" не найдена";
+                        break;
+                    }
+                    EditNorm.selectedNorm = norm;
+                    EditNorm.Run();
+                break;
+
+                case "exit":
+                    isRunning = false;
+                    Renderer.Clear();
+                    Renderer.WriteLine("Бывайте.", ConsoleColor.DarkGray);
+                break;
+                
+                default:
+                    lastError = $"Команда \"{command[0]}\" не найдена";
+                    break;
+            }
         }
     }
 }
